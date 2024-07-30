@@ -1,14 +1,10 @@
-package radhouene.develop.nakivo.nakivoapp.services;
-
+package radhouene.develop.nakivo.nakivoapp.services.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
@@ -23,27 +19,41 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class ListJobsInGroup {
+public class BackUpObjectsManagement {
     private RestTemplate restTemplate = new RestTemplate();
-    @Scheduled(fixedRate = 5000)
-    public void testBackUpObjects(){
-        System.out.println(GlobalVars.getNakivoServiceEndpoint());
-        sendJsonRpcRequestListJobsInGroup();
-    }
-    public String sendJsonRpcRequestListJobsInGroup() {
-        /*List<Object> dataList = new ArrayList<>();
-        dataList.add(null);*/
-        List<Object> data = new ArrayList<>();
-        data.add(new Object[]{1});
-        data.add(0);
-        //data.add(false);
+
+
+    public String sendJsonRpcRequestBackUp() {
+        Map<String, Object> criteria = new HashMap<>();
+        criteria.put("type", "EQ");
+        criteria.put("name", "REPOSITORY_ID");
+        criteria.put("value", 3);
+
+        List<Map<String, Object>> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        Map<String, Object> filter = new HashMap<>();
+        filter.put("start", 0);
+        filter.put("count", 9999);
+        filter.put("sort", "NAME");
+        filter.put("sortAsc", true);
+        filter.put("criteria", criteriaList);
+
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("filter", filter);
+
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        dataList.add(dataMap);
+
+
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("insecure", true);
-        requestBody.put("action", "JobSummaryManagement");
-        requestBody.put("method", "getGroupInfo");
-        requestBody.put("data", data);
+        requestBody.put("action", "BackupManagement");
+        requestBody.put("method", "getBackupObjects");
+        requestBody.put("data", dataList);
         requestBody.put("type", "rpc");
         requestBody.put("tid", 1);
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, AuthenticationManagement.sendJsonRpcRequestLogin());
 
 
@@ -56,5 +66,7 @@ public class ListJobsInGroup {
         System.out.println(responseEntity.getBody());
         return responseEntity.getBody();
     }
+
+
 
 }
