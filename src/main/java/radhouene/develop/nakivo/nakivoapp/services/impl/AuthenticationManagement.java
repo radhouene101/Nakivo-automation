@@ -46,9 +46,9 @@ public class AuthenticationManagement {
         GlobalVars.cookies = responseEntity.getHeaders().get(HttpHeaders.SET_COOKIE);
         assert GlobalVars.cookies != null;
         headers.put(HttpHeaders.COOKIE, GlobalVars.cookies);
-        System.out.println("cookies are "+GlobalVars.cookies);
-        System.out.println(responseEntity.getBody());
-        System.out.println("login req  "+request.getBody());
+//        System.out.println("cookies are "+GlobalVars.cookies);
+//        System.out.println(responseEntity.getBody());
+//        System.out.println("login req  "+request.getBody());
         //returning the headers to use this funtion as header parameter in other api call for session seved in cookies
         return headers;
     }

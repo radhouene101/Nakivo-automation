@@ -25,11 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ListJobsInGroup {
     private RestTemplate restTemplate = new RestTemplate();
-    @Scheduled(fixedRate = 5000)
-    public void testBackUpObjects(){
-        System.out.println(GlobalVars.getNakivoServiceEndpoint());
-        sendJsonRpcRequestListJobsInGroup();
-    }
+
     public String sendJsonRpcRequestListJobsInGroup() {
         /*List<Object> dataList = new ArrayList<>();
         dataList.add(null);*/

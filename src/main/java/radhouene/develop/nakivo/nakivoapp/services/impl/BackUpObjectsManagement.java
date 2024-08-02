@@ -4,10 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import radhouene.develop.nakivo.nakivoapp.entities.BackUpObjectsEntity;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
+import radhouene.develop.nakivo.nakivoapp.repositories.BackUpObjectsRepository;
+import radhouene.develop.nakivo.nakivoapp.services.BackUpObjectsService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,25 +26,32 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class BackUpObjectsManagement {
+public class BackUpObjectsManagement implements BackUpObjectsService {
     private RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private BackUpObjectsRepository repository;
 
+    @Scheduled(fixedRate = 5000)
+    public void testBackUpObjects() throws JSONException {
+        System.out.println(GlobalVars.getNakivoServiceEndpoint());
+        sendJsonRpcRequestBackUpRepositories();
+    }
 
-    public String sendJsonRpcRequestBackUp() {
+    public ResponseEntity<String> sendJsonRpcRequestBackUpRepositories() throws JSONException {
         Map<String, Object> criteria = new HashMap<>();
-        criteria.put("type", "EQ");
+        criteria.put("type", "LOCAL");
         criteria.put("name", "REPOSITORY_ID");
-        criteria.put("value", 3);
+        criteria.put("value", 1);
 
         List<Map<String, Object>> criteriaList = new ArrayList<>();
         criteriaList.add(criteria);
 
         Map<String, Object> filter = new HashMap<>();
         filter.put("start", 0);
-        filter.put("count", 9999);
+        filter.put("count", 60);
         filter.put("sort", "NAME");
         filter.put("sortAsc", true);
-        filter.put("criteria", criteriaList);
+        filter.put("criteria", null);
 
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("filter", filter);
@@ -49,7 +63,8 @@ public class BackUpObjectsManagement {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("insecure", true);
         requestBody.put("action", "BackupManagement");
-        requestBody.put("method", "getBackupObjects");
+        //getting the repositories
+        requestBody.put("method", "getBackupRepositories");
         requestBody.put("data", dataList);
         requestBody.put("type", "rpc");
         requestBody.put("tid", 1);
@@ -58,15 +73,41 @@ public class BackUpObjectsManagement {
 
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                GlobalVars.getNakivoServiceEndpoint(),
+                GlobalVars.NakivoServiceEndpointTenant2,
                 HttpMethod.POST,
                 request,
                 String.class
         );
         System.out.println(responseEntity.getBody());
-        return responseEntity.getBody();
+
+        JSONObject jsonObject = (JSONObject) new JSONObject(responseEntity.getBody());
+        System.out.println(
+                jsonObject.get("type"));
+        return responseEntity;
+    }
+    public void filterResponse() throws JSONException {
+        ResponseEntity<String> response = sendJsonRpcRequestBackUp();
+        JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
+        System.out.println(jsonObject.getJSONObject("data").getJSONArray("children"));
     }
 
+    @Override
+    public BackUpObjectsEntity save(BackUpObjectsEntity dto) {
+        return null;
+    }
 
+    @Override
+    public List<BackUpObjectsEntity> findAll() {
+        return List.of();
+    }
 
+    @Override
+    public BackUpObjectsEntity findById(Long id) {
+        return null;
+    }
+
+    @Override
+    public void delete(Long id) {
+
+    }
 }
