@@ -86,7 +86,7 @@ public class BackUpObjectsManagement implements BackUpObjectsService {
         return responseEntity;
     }
     public void filterResponse() throws JSONException {
-        ResponseEntity<String> response = sendJsonRpcRequestBackUp();
+        ResponseEntity<String> response = sendJsonRpcRequestBackUpRepositories();
         JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
         System.out.println(jsonObject.getJSONObject("data").getJSONArray("children"));
     }
