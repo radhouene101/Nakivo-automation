@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import radhouene.develop.nakivo.nakivoapp.entities.Jobs;
 import radhouene.develop.nakivo.nakivoapp.entities.Schedules;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
+import radhouene.develop.nakivo.nakivoapp.repositories.JobsRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,14 +29,14 @@ import java.util.Map;
 @Getter
 @Setter
 @AllArgsConstructor
-@RequiredArgsConstructor
+
 public class ListJobs {
     private RestTemplate restTemplate = new RestTemplate();
-
+    @Autowired
+    private final JobsRepository jobsRepository;
     @Scheduled(fixedRate = 5000)
     public void testBackUpObjects() throws JSONException {
-        filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(1));
-    }
+        saveAllJobs();    }
     public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup() {
         List<Object> data = new ArrayList<>();
         data.add(new Object[]{null});
@@ -114,12 +115,25 @@ public class ListJobs {
             job.setHvType((String) currentChild.get("hvType"));
             job.setJobType((String) currentChild.get("jobType"));
             job.setVmCount((Integer) currentChild.get("vmCount"));
-            job.setSchedule(currentChild.getJSONArray("schedules").get(0).toString());
+            // TODO FIX THIS SCHEDULE PROBLEM
+            // job.setSchedule( currentChild.getJSONObject("schedules").toString());
             job.setPrePerscriotionError((String) currentChild.get("preScriptErrorMode"));
             job.setPostPrescriptionError((String) currentChild.get("postScriptErrorMode"));
         }
         System.out.println(job.toString());
         return job;
     }
-    public void save
+    public void saveAllJobs() throws JSONException {
+        List<JSONArray> IdsJson = childJobsIdsAllGroupes();
+        List<Integer> Ids = new ArrayList<>();
+        for (int i = 0 ; i<IdsJson.size() ; i++){
+            JSONArray current = IdsJson.get(i);
+            for (int j = 0 ; j<current.length() ; j++){
+                Ids.add((Integer) current.get(j));
+            }
+        }
+        for (Integer id : Ids){
+            jobsRepository.save(filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(id)));
+        }
+    }
 }
