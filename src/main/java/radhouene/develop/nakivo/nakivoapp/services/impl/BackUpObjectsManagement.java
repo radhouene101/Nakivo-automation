@@ -31,11 +31,11 @@ public class BackUpObjectsManagement implements BackUpObjectsService {
     @Autowired
     private BackUpObjectsRepository repository;
 
-    @Scheduled(fixedRate = 5000)
-    public void testBackUpObjects() throws JSONException {
-        System.out.println(GlobalVars.getNakivoServiceEndpoint());
-        sendJsonRpcRequestBackUpRepositories();
-    }
+//    @Scheduled(fixedRate = 5000)
+//    public void testBackUpObjects() throws JSONException {
+//        System.out.println(GlobalVars.getNakivoServiceEndpoint());
+//        sendJsonRpcRequestBackUpRepositories();
+//    }
 
     public ResponseEntity<String> sendJsonRpcRequestBackUpRepositories() throws JSONException {
         Map<String, Object> criteria = new HashMap<>();
@@ -73,7 +73,7 @@ public class BackUpObjectsManagement implements BackUpObjectsService {
 
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                GlobalVars.NakivoServiceEndpointTenant2,
+                GlobalVars.NakivoServiceEndpoint,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -88,6 +88,7 @@ public class BackUpObjectsManagement implements BackUpObjectsService {
     public void filterResponse() throws JSONException {
         ResponseEntity<String> response = sendJsonRpcRequestBackUpRepositories();
         JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
+
         System.out.println(jsonObject.getJSONObject("data").getJSONArray("children"));
     }
 
