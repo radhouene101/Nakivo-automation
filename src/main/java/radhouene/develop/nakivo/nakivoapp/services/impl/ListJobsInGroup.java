@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +29,15 @@ import java.util.Map;
 public class ListJobsInGroup {
     private RestTemplate restTemplate = new RestTemplate();
 
-    public String sendJsonRpcRequestListJobsInGroup() {
-        /*List<Object> dataList = new ArrayList<>();
-        dataList.add(null);*/
+    @Scheduled(fixedRate = 5000)
+    public void testBackUpObjects() throws JSONException {
+        sendJsonRpcRequestListJobsInGroup();
+    }
+    public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup() {
         List<Object> data = new ArrayList<>();
         data.add(new Object[]{1});
         data.add(0);
-        //data.add(false);
+        data.add(true);
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("insecure", true);
         requestBody.put("action", "JobSummaryManagement");
@@ -44,13 +49,24 @@ public class ListJobsInGroup {
 
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                GlobalVars.getNakivoServiceEndpoint(),
+                GlobalVars.NakivoServiceEndpointTenant1,
                 HttpMethod.POST,
                 request,
                 String.class
         );
+        //System.out.println(responseEntity);
+        return responseEntity;
+    }
+    public void filterAndSaveJobs() throws JSONException {
+        ResponseEntity<String> responseEntity = sendJsonRpcRequestListJobsInGroup();
         System.out.println(responseEntity.getBody());
-        return responseEntity.getBody();
+        JSONObject jsonObject = (JSONObject) new JSONObject(responseEntity.getBody());
+        JSONObject result = (JSONObject) jsonObject.get("data");
+        JSONArray resultData =  result.getJSONArray("data");
+        for (int i = 0; i < resultData.length(); i++) {
+            JSONObject job = resultData.getJSONObject(i);
+            System.out.println(job);
+        }
     }
 
 }

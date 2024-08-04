@@ -35,7 +35,7 @@ public class TenantList {
     @Scheduled(fixedRate = 5000)
     public void testBackUpObjects() throws JSONException {
 
-        tenantDataFilter();
+        tenantDataFilterAndSaveTenants();
     }
     public ResponseEntity<String> getAllTenants() throws JSONException {
         Map<String, Object> filter = new HashMap<>();
@@ -71,7 +71,7 @@ public class TenantList {
         System.out.println(responseEntity.getBody());
         return responseEntity;
     }
-    public Map<String,Object> tenantDataFilter() throws JSONException {
+    public void tenantDataFilterAndSaveTenants() throws JSONException {
         ResponseEntity<String> responseEntity = getAllTenants();
         System.out.println(responseEntity.getBody());
         JSONObject jsonObject = (JSONObject) new JSONObject(responseEntity.getBody());
@@ -85,11 +85,12 @@ public class TenantList {
                 JSONObject tenantObject = (JSONObject) tenant.get(i);
                 tenantInstance.setId((Integer) tenantObject.get("id"));
                 tenantInstance.setName((String) tenantObject.get("name"));
+                tenantInstance.setUserName((String) tenantObject.get("email"));
                 tenantInstance.setContactEmail((String) tenantObject.get("email"));
                 tenantInstance.setState((String) tenantObject.get("state"));
                 tenantInstance.setUuid((String) tenantObject.get("uuid"));
                 tenantInstance.setUsedBackupStorage((Integer) tenantObject.get("usedBackupStorage"));
-                tenantInstance.setUsedBackupStorage((Integer) tenantObject.get("allocatedBackupStorage"));
+                tenantInstance.setAllocatedBackupStorage((Integer) tenantObject.get("allocatedBackupStorage"));
 
                 if(tenantObject.get("allocated").equals("1")) {
                     tenantInstance.setIsAllocated(true);
@@ -100,6 +101,5 @@ public class TenantList {
             }
 
         }
-        return new HashMap<>();
     }
 }
