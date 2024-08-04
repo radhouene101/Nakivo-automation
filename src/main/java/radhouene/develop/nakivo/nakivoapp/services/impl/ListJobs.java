@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
@@ -14,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import radhouene.develop.nakivo.nakivoapp.entities.Jobs;
+import radhouene.develop.nakivo.nakivoapp.entities.Schedules;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
 
 import java.util.ArrayList;
@@ -31,7 +34,7 @@ public class ListJobs {
 
     @Scheduled(fixedRate = 5000)
     public void testBackUpObjects() throws JSONException {
-        childJobsIdsAllGroupes().forEach(System.out::println);
+        filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(1));
     }
     public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup() {
         List<Object> data = new ArrayList<>();
@@ -96,16 +99,27 @@ public class ListJobs {
         );
         return responseEntity;
     }
-    public NullPointerException filterJobAndReturnJobsInstance(ResponseEntity<String> response) throws JSONException {
+    // this method filters the job info and return a Jobs instance that we'll be using later in the with listJobsInfos() method
+    public Jobs filterJobAndReturnJobsInstance(ResponseEntity<String> response) throws JSONException {
         System.out.println(response.getBody());
         JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
-        JSONObject result = (JSONObject) jsonObject.get("data");
-        JSONArray resultData =  result.getJSONArray("data");
-        for (int i = 0; i < resultData.length(); i++) {
-            JSONObject job = resultData.getJSONObject(i);
-            System.out.println(job);
+        JSONObject resultData =  jsonObject.getJSONObject("data");
+        JSONArray childrens = resultData.getJSONArray("children");
+        Jobs job = new Jobs();
+        for(int i = 0 ; i<childrens.length() ; i++){
+            JSONObject currentChild = (JSONObject) childrens.get(i);
+            job.setId((Integer) currentChild.get("id"));
+            job.setName((String) currentChild.get("name"));
+            job.setStatus((String) currentChild.get("status"));
+            job.setHvType((String) currentChild.get("hvType"));
+            job.setJobType((String) currentChild.get("jobType"));
+            job.setVmCount((Integer) currentChild.get("vmCount"));
+            job.setSchedule(currentChild.getJSONArray("schedules").get(0).toString());
+            job.setPrePerscriotionError((String) currentChild.get("preScriptErrorMode"));
+            job.setPostPrescriptionError((String) currentChild.get("postScriptErrorMode"));
         }
-        return new NullPointerException("didnt finish this method yet");
+        System.out.println(job.toString());
+        return job;
     }
-
+    public void save
 }
