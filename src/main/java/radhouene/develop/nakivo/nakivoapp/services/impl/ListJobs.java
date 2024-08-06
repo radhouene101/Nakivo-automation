@@ -34,7 +34,7 @@ public class ListJobs {
     private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private final JobsRepository jobsRepository;
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 10000)
     public void testBackUpObjects() throws JSONException {
         saveAllJobs();    }
     public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup() {

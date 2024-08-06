@@ -32,7 +32,7 @@ public class TenantList {
     private final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private final TenantRepository repository;
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 10000)
     public void testBackUpObjects() throws JSONException {
 
         tenantDataFilterAndSaveTenants();
