@@ -21,7 +21,8 @@ public class Jobs {
     private String hvType;
     private String jobType;
     private Integer vmCount;
-
+    private String isEnabled;
+    private String currentState;
     private String schedule;
     private String prePerscriotionError;
     private String postPrescriptionError;

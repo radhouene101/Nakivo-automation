@@ -91,6 +91,10 @@ public class TenantList {
                 tenantInstance.setUuid((String) tenantObject.get("uuid"));
                 tenantInstance.setUsedBackupStorage((Integer) tenantObject.get("usedBackupStorage"));
                 tenantInstance.setAllocatedBackupStorage((Integer) tenantObject.get("allocatedBackupStorage"));
+                tenantInstance.setUsedVms((Integer) tenantObject.get("usedVms"));
+                tenantInstance.setRemoteTenant(tenantObject.get("remoteTenant").toString());
+                tenantInstance.setConnected( tenantObject.get("connected").toString());
+                tenantInstance.setEnabled( tenantObject.get("enabled").toString());
 
                 if(tenantObject.get("allocated").equals("1")) {
                     tenantInstance.setIsAllocated(true);
@@ -98,6 +102,10 @@ public class TenantList {
                     tenantInstance.setIsAllocated(false);
                 }
                 repository.save(tenantInstance);
+                System.out.println("tenant saved");
+                System.out.println("##########################################################################");
+                System.out.println(dataObject.getJSONArray("children"));
+                System.out.println("##########################################################################");
             }
 
         }

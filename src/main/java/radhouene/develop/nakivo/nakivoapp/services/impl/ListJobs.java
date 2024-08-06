@@ -102,25 +102,28 @@ public class ListJobs {
     }
     // this method filters the job info and return a Jobs instance that we'll be using later in the with listJobsInfos() method
     public Jobs filterJobAndReturnJobsInstance(ResponseEntity<String> response) throws JSONException {
-        System.out.println(response.getBody());
+
         JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
         JSONObject resultData =  jsonObject.getJSONObject("data");
         JSONArray childrens = resultData.getJSONArray("children");
         Jobs job = new Jobs();
         for(int i = 0 ; i<childrens.length() ; i++){
             JSONObject currentChild = (JSONObject) childrens.get(i);
+            System.out.println(currentChild.toString());
             job.setId((Integer) currentChild.get("id"));
             job.setName((String) currentChild.get("name"));
             job.setStatus((String) currentChild.get("status"));
             job.setHvType((String) currentChild.get("hvType"));
             job.setJobType((String) currentChild.get("jobType"));
             job.setVmCount((Integer) currentChild.get("vmCount"));
+            job.setIsEnabled( currentChild.get("isEnabled").toString());
+            job.setCurrentState( currentChild.get("crState").toString());
             // TODO FIX THIS SCHEDULE PROBLEM
             // job.setSchedule( currentChild.getJSONObject("schedules").toString());
             job.setPrePerscriotionError((String) currentChild.get("preScriptErrorMode"));
             job.setPostPrescriptionError((String) currentChild.get("postScriptErrorMode"));
         }
-        System.out.println(job.toString());
+
         return job;
     }
     public void saveAllJobs() throws JSONException {

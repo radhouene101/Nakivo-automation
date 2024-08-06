@@ -14,8 +14,12 @@ public class Tenants {
     private String userName;
     private String contactEmail;
     private String state;
+    private Integer usedVms;
     private String type;
     private String uuid;
+    private String connected;
+    private String enabled;
+    private String remoteTenant;
     private Boolean isAllocated;
     private Integer usedBackupStorage;
     private Integer allocatedBackupStorage;
