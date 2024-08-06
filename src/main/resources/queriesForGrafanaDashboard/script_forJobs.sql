@@ -11,4 +11,6 @@ SELECT count(job_type) as backup FROM nakivo.jobs where job_type="BACKUP" LIMIT 
 select count(job_type) as site_recovery from nakivo.jobs where job_type = "SITE_RECOVERY"
 
 
---------------------------------------------Inspect: Jobs Data-------------------------------------------------------
+--------------------------------------------Inspect: Jobs Data (table)----------------------------------------------
+--A:3 rows
+SELECT name, job_type, hv_type, status, current_state, is_enabled FROM nakivo.jobs LIMIT 50
