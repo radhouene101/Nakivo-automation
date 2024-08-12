@@ -119,7 +119,10 @@ public class ListJobs {
             job.setIsEnabled( currentChild.get("isEnabled").toString());
             job.setCurrentState( currentChild.get("crState").toString());
             // TODO FIX THIS SCHEDULE PROBLEM
-            // job.setSchedule( currentChild.getJSONObject("schedules").toString());
+            JSONArray schedulesArray = (JSONArray) currentChild.get("schedules");
+            JSONObject schedualesObject = (JSONObject) schedulesArray.get(0);
+            job.setNextRun(schedualesObject.get("nextRun").toString());
+            job.setStartTime(schedualesObject.get("startTime").toString());
             job.setPrePerscriotionError((String) currentChild.get("preScriptErrorMode"));
             job.setPostPrescriptionError((String) currentChild.get("postScriptErrorMode"));
         }

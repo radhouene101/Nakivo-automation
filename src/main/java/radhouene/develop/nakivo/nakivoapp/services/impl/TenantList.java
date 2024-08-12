@@ -34,7 +34,6 @@ public class TenantList {
     private final TenantRepository repository;
     @Scheduled(fixedRate = 10000)
     public void testBackUpObjects() throws JSONException {
-
         tenantDataFilterAndSaveTenants();
     }
     public ResponseEntity<String> getAllTenants() throws JSONException {

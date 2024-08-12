@@ -23,6 +23,9 @@ public class Jobs {
     private Integer vmCount;
     private String isEnabled;
     private String currentState;
+    private String lrState;
+    private String nextRun;
+    private String startTime;
     private String schedule;
     private String prePerscriotionError;
     private String postPrescriptionError;
