@@ -15,7 +15,7 @@ import java.util.Set;
 @Data
 public class Jobs {
     @Id
-    private Integer id;
+    private String id;
     private String TenantUUID;
     private String TenantNAME;
     private String name;
@@ -31,5 +31,6 @@ public class Jobs {
     private String schedule;
     private String prePerscriotionError;
     private String postPrescriptionError;
+    private String ContactEmail;
 
 }

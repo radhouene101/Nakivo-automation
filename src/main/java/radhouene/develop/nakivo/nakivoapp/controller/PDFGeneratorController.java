@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import radhouene.develop.nakivo.nakivoapp.services.impl.PDFGenerator;
+import radhouene.develop.nakivo.nakivoapp.services.impl.PDFGeneratorJobs;
 
 import java.io.FileNotFoundException;
 
@@ -16,11 +17,20 @@ import java.io.FileNotFoundException;
 @Tag(name = "pdf-generator-controller", description = "PDF Generator Controller")
 public class PDFGeneratorController {
     private final PDFGenerator pdfGenerator;
+    private final PDFGeneratorJobs pdfGeneratorJobs;
 
-    @PostMapping(value = "/pdf/{email}")
+    @GetMapping(value = "/tenant-pdf/{email}")
     public void generatePDF(@PathVariable String email) throws DocumentException, FileNotFoundException {
         try {
             pdfGenerator.TenantsPDF(email);
+        } catch (Exception e) {
+            e.printStackTrace();}
+
+    }
+    @GetMapping(value = "/jobs-pdf/{email}")
+    public void generatePDFJobs(@PathVariable String email) throws DocumentException, FileNotFoundException {
+        try {
+            pdfGeneratorJobs.TenantsPDF(email);
         } catch (Exception e) {
             e.printStackTrace();}
 

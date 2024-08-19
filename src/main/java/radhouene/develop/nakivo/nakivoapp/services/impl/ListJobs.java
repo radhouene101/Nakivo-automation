@@ -1,6 +1,7 @@
 package radhouene.develop.nakivo.nakivoapp.services.impl;
 
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,10 +42,11 @@ public class ListJobs {
     @Autowired
     private TenantRepository tenantRepository;
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 60000)
     public void testBackUpObjects() throws JSONException {
-       // saveAllJobs();
-            }
+        jobsRepository.deleteAll();
+        saveAllJobs();
+    }
             //send a json rpc request to get the list of jobs in a group
     public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup(String tenantUUID) {
         List<Object> data = new ArrayList<>();
@@ -111,6 +113,7 @@ public class ListJobs {
         );
         return responseEntity;
     }
+    @Transactional
     // this method filters the job info and return a Jobs instance that we'll be using later in the with listJobsInfos() method
     public Jobs filterJobAndReturnJobsInstance(ResponseEntity<String> response, String tenantUUID, String name) throws JSONException {
 
@@ -124,7 +127,7 @@ public class ListJobs {
             job.setTenantUUID(tenantUUID);
             job.setTenantNAME(name);
             System.out.println(currentChild.toString());
-            job.setId((Integer) currentChild.get("id"));
+            job.setId(tenantUUID+ currentChild.get("id"));
             job.setName((String) currentChild.get("name"));
             job.setStatus((String) currentChild.get("status"));
             job.setHvType((String) currentChild.get("hvType"));
@@ -143,6 +146,7 @@ public class ListJobs {
 
         return job;
     }
+    @Transactional
     public void saveAllJobs() throws JSONException {
         List<Tenants> tenants = tenantRepository.findAll();
         for(Tenants tenant : tenants){
@@ -158,8 +162,11 @@ public class ListJobs {
 
         for (Integer id : Ids){
             Jobs job = filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(id, tenant.getUuid()), tenant.getUuid(),tenant.getName());
+            job.setContactEmail(tenant.getContactEmail());
             jobsRepository.save(job);
-            jobsAllLogsRepository.save(new JobsAllLogs(job));
+            JobsAllLogs jobsAllLogs = new JobsAllLogs(job);
+            jobsAllLogs.setContactEmail(tenant.getContactEmail());
+            jobsAllLogsRepository.save(jobsAllLogs);
         }
     }
     }

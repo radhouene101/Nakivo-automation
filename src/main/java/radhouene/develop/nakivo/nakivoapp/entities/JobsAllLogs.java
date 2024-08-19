@@ -16,7 +16,7 @@ public class JobsAllLogs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer job_id;
+    private String job_id;
     private String TenantUUID;
     private String TenantNAME;
     private String name;
@@ -32,6 +32,7 @@ public class JobsAllLogs {
     private String schedule;
     private String prePerscriotionError;
     private String postPrescriptionError;
+    private String ContactEmail;
     public JobsAllLogs(Jobs jobs){
         this.job_id=jobs.getId();
         this.TenantUUID=jobs.getTenantUUID();

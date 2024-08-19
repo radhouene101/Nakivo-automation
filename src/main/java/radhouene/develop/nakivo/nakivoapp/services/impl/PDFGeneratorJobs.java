@@ -11,7 +11,9 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import radhouene.develop.nakivo.nakivoapp.entities.JobsAllLogs;
 import radhouene.develop.nakivo.nakivoapp.entities.TenantAllLogs;
+import radhouene.develop.nakivo.nakivoapp.repositories.JobsAllLogsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.JobsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.TenantAllLogsRepository;
 
@@ -28,17 +30,16 @@ import java.util.stream.Stream;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PDFGenerator {
+public class PDFGeneratorJobs {
     @Autowired
-    private final JobsRepository jobsRepository;
-    @Autowired
-    TenantAllLogsRepository tenantAllLogsRepository;
+    private final JobsAllLogsRepository jobsRepository;
+
     public Document TenantsPDF(String email) throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
-        PdfWriter.getInstance(document, new FileOutputStream("Tenants.pdf"));
+        PdfWriter.getInstance(document, new FileOutputStream("jobsByEmail.pdf"));
         document.open();
         Paragraph header = new Paragraph();
-        header.add("Nakivo Tenants of client "+ email);
+        header.add("Nakivo jobs of client "+ email);
         header.setAlignment(Element.ALIGN_CENTER);
         header.setSpacingAfter(20);
         PdfPTable table1 = new PdfPTable(1);
@@ -47,10 +48,10 @@ public class PDFGenerator {
         document.add(header);
         PdfPTable table = new PdfPTable(8);
         tableHeaderTenants(table);
-        List<TenantAllLogs> t2 = tenantAllLogsRepository.findAllBytenantsemail(email);
-        for(TenantAllLogs tenant : t2) {
-                addRowTenants(table, tenant);
-            }
+        List<JobsAllLogs> t2 = jobsRepository.retrieveByContactEmail(email);
+        for(JobsAllLogs job : t2) {
+            addRowTenants(table, job);
+        }
 
 
         //addRowTenants(table, "next Step", "Tenant1", "4", "OK");
@@ -59,7 +60,7 @@ public class PDFGenerator {
         return document;
     }
     public static void tableHeaderTenants(PdfPTable table) {
-        Stream.of("Tenant name", "Contact email", "Allocated Licences", "Used Licences", "Status","Used VMS" ,"running" ,"is remote")
+        Stream.of("Tenant name", "Contact email", "Job Type", "job name", "next run","status" ,"vm number" ,"Hypervisor type")
                 .forEach(columnTitle -> {
                     PdfPCell header = new PdfPCell();
                     header.setBackgroundColor(BaseColor.LIGHT_GRAY);
@@ -68,7 +69,7 @@ public class PDFGenerator {
                     table.addCell(header);
                 });
     }
-//    @Scheduled(fixedRate = 10000)
+    //    @Scheduled(fixedRate = 10000)
 //    public void test() {
 //        List<TenantAllLogs> tenantAllLogs = tenantAllLogsRepository.tenants();
 //        for(TenantAllLogs tenant : tenantAllLogs) {
@@ -77,16 +78,17 @@ public class PDFGenerator {
 //        System.out.println(tenantAllLogsRepository.tenants().toString());
 //    }
     // specific lel pdf stamalna el record eli snaneh louta
-    public static void addRowTenants(PdfPTable table, TenantAllLogs tenant) {
-        TenantToDisplay tenantToDisplay = new TenantToDisplay(tenant);
-        table.addCell(tenantToDisplay.getTenantName());
-        table.addCell(tenantToDisplay.getContactEmail());
-        table.addCell(tenantToDisplay.getAllocatedLicences().toString());
-        table.addCell(tenantToDisplay.getUsedLicences().toString());
-        table.addCell(tenantToDisplay.getStatus());
-        table.addCell(tenantToDisplay.getUsedVMS().toString());
-        table.addCell(tenantToDisplay.getRunning());
-        table.addCell(tenantToDisplay.getIsRemote());
+    public static void addRowTenants(PdfPTable table, JobsAllLogs job) {
+
+        jobsToDisplay jobsToDisplay = new jobsToDisplay(job);
+        table.addCell(jobsToDisplay.getTenantName());
+        table.addCell(jobsToDisplay.getContactEmail());
+        table.addCell(jobsToDisplay.getJobType());
+        table.addCell(jobsToDisplay.getJobName());
+        table.addCell(jobsToDisplay.getNextRun());
+        table.addCell(jobsToDisplay.getStatus());
+        table.addCell(jobsToDisplay.getVmNumber());
+        table.addCell(jobsToDisplay.getHvType());
     }
     public static void addCustomImage(PdfPTable table) throws URISyntaxException, BadElementException, IOException {
         Path path = Paths.get(ClassLoader.getSystemResource("images/next_step-logo.png").toURI());
@@ -101,8 +103,8 @@ public class PDFGenerator {
         descriptionCell.setHorizontalAlignment(Element.ALIGN_LEFT);
     }
 
-    public List<TenantAllLogs> collectTenantsForClients(String email){
-        List<TenantAllLogs> tenants = tenantAllLogsRepository.findAllBytenantsemail(email);
+    public List<JobsAllLogs> collectTenantsForClients(String email){
+        List<JobsAllLogs> tenants = jobsRepository.retrieveByContactEmail(email);
         return tenants;
     }
 
@@ -112,24 +114,24 @@ public class PDFGenerator {
 
 // we used this to behave as a record specific for el pdf
 @Data
-class TenantToDisplay {
-    private String tenantName;
-    private String contactEmail;
-    private Integer allocatedLicences;
-    private Integer usedLicences;
-    private String status;
-    private Integer usedVMS;
-    private String running;
-    private String isRemote;
-
-    public TenantToDisplay(TenantAllLogs tenantAllLogs){
-        this.tenantName = tenantAllLogs.getName();
-        this.contactEmail = tenantAllLogs.getContactEmail();
-        this.allocatedLicences = tenantAllLogs.getAllocatedLicences();
-        this.usedLicences = tenantAllLogs.getUsedLicences();
-        this.status = tenantAllLogs.getState();
-        this.usedVMS = tenantAllLogs.getUsedVms();
-        this.running = tenantAllLogs.getConnected();
-        this.isRemote = tenantAllLogs.getRemoteTenant();
+class jobsToDisplay {
+   String tenantName;
+    String contactEmail;
+    String JobType;
+    String jobName;
+    String nextRun;
+    String status;
+    String vmNumber;
+    String hvType;
+    public jobsToDisplay(JobsAllLogs job){
+        this.tenantName = job.getTenantNAME();
+        this.contactEmail = job.getContactEmail();
+        this.JobType = job.getJobType();
+        this.jobName = job.getName();
+        this.nextRun = job.getNextRun();
+        this.status = job.getStatus();
+        this.vmNumber = job.getVmCount().toString();
+        this.hvType = job.getHvType();
     }
+
 }
