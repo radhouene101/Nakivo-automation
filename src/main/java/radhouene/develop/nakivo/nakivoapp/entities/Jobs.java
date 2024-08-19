@@ -16,6 +16,8 @@ import java.util.Set;
 public class Jobs {
     @Id
     private Integer id;
+    private String TenantUUID;
+    private String TenantNAME;
     private String name;
     private String status;
     private String hvType;

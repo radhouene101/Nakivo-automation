@@ -13,8 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import radhouene.develop.nakivo.nakivoapp.entities.TenantAllLogs;
 import radhouene.develop.nakivo.nakivoapp.entities.Tenants;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
+import radhouene.develop.nakivo.nakivoapp.repositories.TenantAllLogsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.TenantRepository;
 
 import java.util.ArrayList;
@@ -32,8 +34,11 @@ public class TenantList {
     private final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private final TenantRepository repository;
-    @Scheduled(fixedRate = 10000)
+    private final TenantAllLogsRepository repositoryAllLogs;
+
+    @Scheduled(fixedDelay = 50000)
     public void testBackUpObjects() throws JSONException {
+        repository.deleteAll();
         tenantDataFilterAndSaveTenants();
     }
     public ResponseEntity<String> getAllTenants() throws JSONException {
@@ -78,8 +83,10 @@ public class TenantList {
         JSONObject dataObject = (JSONObject) jsonObject.get("data");
         List<JSONArray> tenants = new ArrayList<>();
         tenants.add(dataObject.getJSONArray("children"));
+
         for(JSONArray tenant: tenants){
             Tenants tenantInstance = new Tenants();
+
             for(int i=0; i<tenant.length(); i++){
                 JSONObject tenantObject = (JSONObject) tenant.get(i);
                 tenantInstance.setId((Integer) tenantObject.get("id"));
@@ -94,12 +101,16 @@ public class TenantList {
                 tenantInstance.setRemoteTenant(tenantObject.get("remoteTenant").toString());
                 tenantInstance.setConnected( tenantObject.get("connected").toString());
                 tenantInstance.setEnabled( tenantObject.get("enabled").toString());
+                tenantInstance.setAllocatedLicences((Integer) tenantObject.get("allocated"));
+                tenantInstance.setAllocatedDesiredLicences((Integer) tenantObject.get("allocatedDesired"));
+                tenantInstance.setUsedLicences((Integer) tenantObject.get("usedSockets"));
 
                 if(tenantObject.get("allocated").equals("1")) {
                     tenantInstance.setIsAllocated(true);
                 }else{
                     tenantInstance.setIsAllocated(false);
                 }
+                repositoryAllLogs.save(new TenantAllLogs(tenantInstance));
                 repository.save(tenantInstance);
                 System.out.println("tenant saved");
                 System.out.println("##########################################################################");

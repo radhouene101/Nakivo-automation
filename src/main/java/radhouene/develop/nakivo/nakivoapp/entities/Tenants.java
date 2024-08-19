@@ -23,6 +23,9 @@ public class Tenants {
     private Boolean isAllocated;
     private Integer usedBackupStorage;
     private Integer allocatedBackupStorage;
+    private Integer allocatedLicences;
+    private Integer allocatedDesiredLicences;
+    private Integer usedLicences;
 
 
 }

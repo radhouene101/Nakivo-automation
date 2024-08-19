@@ -3,7 +3,6 @@ package radhouene.develop.nakivo.nakivoapp.services.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
@@ -16,9 +15,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import radhouene.develop.nakivo.nakivoapp.entities.Jobs;
-import radhouene.develop.nakivo.nakivoapp.entities.Schedules;
+import radhouene.develop.nakivo.nakivoapp.entities.JobsAllLogs;
+import radhouene.develop.nakivo.nakivoapp.entities.Tenants;
 import radhouene.develop.nakivo.nakivoapp.globalVars.GlobalVars;
+import radhouene.develop.nakivo.nakivoapp.repositories.JobsAllLogsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.JobsRepository;
+import radhouene.develop.nakivo.nakivoapp.repositories.TenantRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,10 +36,17 @@ public class ListJobs {
     private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private final JobsRepository jobsRepository;
+    @Autowired
+    private final JobsAllLogsRepository jobsAllLogsRepository;
+    @Autowired
+    private TenantRepository tenantRepository;
+
     @Scheduled(fixedRate = 10000)
     public void testBackUpObjects() throws JSONException {
-        saveAllJobs();    }
-    public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup() {
+       // saveAllJobs();
+            }
+            //send a json rpc request to get the list of jobs in a group
+    public ResponseEntity<String> sendJsonRpcRequestListJobsInGroup(String tenantUUID) {
         List<Object> data = new ArrayList<>();
         data.add(new Object[]{null});
         data.add(0);
@@ -53,7 +62,7 @@ public class ListJobs {
 
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                GlobalVars.NakivoServiceEndpointTenant1,
+                GlobalVars.NakivoServiceEndpointPrefix+tenantUUID+GlobalVars.NakivoServiceEndpointsuffix,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -63,8 +72,8 @@ public class ListJobs {
     }
     // this methods returns a list of JSONArray of childJobsIds for all groupes
     // that we use later for the filterAndSaveJobs method
-    public List<JSONArray> childJobsIdsAllGroupes() throws JSONException {
-        JSONObject jsonObject = new JSONObject(sendJsonRpcRequestListJobsInGroup().getBody());
+    public List<JSONArray> childJobsIdsAllGroupes(String tenantUUID) throws JSONException {
+        JSONObject jsonObject = new JSONObject(sendJsonRpcRequestListJobsInGroup(tenantUUID).getBody());
         JSONObject data = (JSONObject) jsonObject.get("data");
         JSONArray children =  data.getJSONArray("children");
 
@@ -77,7 +86,7 @@ public class ListJobs {
         return childJobsIdsList;
     }
     //we can use this method to get the job info by job id
-    public ResponseEntity<String> sendJsonRpcRequestListJobsInfo(Integer jobId) {
+    public ResponseEntity<String> sendJsonRpcRequestListJobsInfo(Integer jobId,String tenantUUID) {
         List<Object> data = new ArrayList<>();
         data.add(new Object[]{jobId});
         data.add(0);
@@ -90,10 +99,12 @@ public class ListJobs {
         requestBody.put("type", "rpc");
         requestBody.put("tid", 1);
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, AuthenticationManagement.sendJsonRpcRequestLogin());
-
+        System.out.println("*******************************************************************");
+        System.out.println(tenantUUID);
+        System.out.println("*******************************************************************");
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                GlobalVars.NakivoServiceEndpointTenant1,
+                GlobalVars.NakivoServiceEndpointPrefix+tenantUUID+GlobalVars.NakivoServiceEndpointsuffix,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -101,7 +112,7 @@ public class ListJobs {
         return responseEntity;
     }
     // this method filters the job info and return a Jobs instance that we'll be using later in the with listJobsInfos() method
-    public Jobs filterJobAndReturnJobsInstance(ResponseEntity<String> response) throws JSONException {
+    public Jobs filterJobAndReturnJobsInstance(ResponseEntity<String> response, String tenantUUID, String name) throws JSONException {
 
         JSONObject jsonObject = (JSONObject) new JSONObject(response.getBody());
         JSONObject resultData =  jsonObject.getJSONObject("data");
@@ -109,6 +120,9 @@ public class ListJobs {
         Jobs job = new Jobs();
         for(int i = 0 ; i<childrens.length() ; i++){
             JSONObject currentChild = (JSONObject) childrens.get(i);
+            // ADDED UUID TO KNOW THE JOBS OF TENANTS
+            job.setTenantUUID(tenantUUID);
+            job.setTenantNAME(name);
             System.out.println(currentChild.toString());
             job.setId((Integer) currentChild.get("id"));
             job.setName((String) currentChild.get("name"));
@@ -130,7 +144,10 @@ public class ListJobs {
         return job;
     }
     public void saveAllJobs() throws JSONException {
-        List<JSONArray> IdsJson = childJobsIdsAllGroupes();
+        List<Tenants> tenants = tenantRepository.findAll();
+        for(Tenants tenant : tenants){
+
+        List<JSONArray> IdsJson = childJobsIdsAllGroupes(tenant.getUuid());
         List<Integer> Ids = new ArrayList<>();
         for (int i = 0 ; i<IdsJson.size() ; i++){
             JSONArray current = IdsJson.get(i);
@@ -138,8 +155,12 @@ public class ListJobs {
                 Ids.add((Integer) current.get(j));
             }
         }
+
         for (Integer id : Ids){
-            jobsRepository.save(filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(id)));
+            Jobs job = filterJobAndReturnJobsInstance(sendJsonRpcRequestListJobsInfo(id, tenant.getUuid()), tenant.getUuid(),tenant.getName());
+            jobsRepository.save(job);
+            jobsAllLogsRepository.save(new JobsAllLogs(job));
         }
+    }
     }
 }
