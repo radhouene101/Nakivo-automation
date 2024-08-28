@@ -10,17 +10,15 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import radhouene.develop.nakivo.nakivoapp.entities.TenantAllLogs;
 import radhouene.develop.nakivo.nakivoapp.repositories.JobsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.TenantAllLogsRepository;
 
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -33,9 +31,11 @@ public class PDFGenerator {
     private final JobsRepository jobsRepository;
     @Autowired
     TenantAllLogsRepository tenantAllLogsRepository;
-    public Document TenantsPDF(String email) throws IOException, DocumentException, URISyntaxException {
+    public ByteArrayOutputStream TenantsPDF(String email) throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
-        PdfWriter.getInstance(document, new FileOutputStream("Tenants.pdf"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PdfWriter.getInstance(document, outputStream);
+        document.setPageSize(new Rectangle(2000,800));
         document.open();
         Paragraph header = new Paragraph();
         header.add("Nakivo Tenants of client "+ email);
@@ -56,7 +56,7 @@ public class PDFGenerator {
         //addRowTenants(table, "next Step", "Tenant1", "4", "OK");
         document.add(table);
         document.close();
-        return document;
+        return outputStream;
     }
     public static void tableHeaderTenants(PdfPTable table) {
         Stream.of("Tenant name", "Contact email", "Allocated Licences", "Used Licences", "Status","Used VMS" ,"running" ,"is remote")

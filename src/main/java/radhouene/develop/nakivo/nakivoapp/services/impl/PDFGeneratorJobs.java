@@ -17,6 +17,7 @@ import radhouene.develop.nakivo.nakivoapp.repositories.JobsAllLogsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.JobsRepository;
 import radhouene.develop.nakivo.nakivoapp.repositories.TenantAllLogsRepository;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -34,9 +35,12 @@ public class PDFGeneratorJobs {
     @Autowired
     private final JobsAllLogsRepository jobsRepository;
 
-    public Document TenantsPDF(String email) throws IOException, DocumentException, URISyntaxException {
+    public ByteArrayOutputStream JobsPDF(String email) throws IOException, DocumentException, URISyntaxException {
         Document document = new Document();
-        PdfWriter.getInstance(document, new FileOutputStream("jobsByEmail.pdf"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        PdfWriter.getInstance(document, outputStream);
+        document.setPageSize(new Rectangle(2000,800));
         document.open();
         Paragraph header = new Paragraph();
         header.add("Nakivo jobs of client "+ email);
@@ -57,7 +61,7 @@ public class PDFGeneratorJobs {
         //addRowTenants(table, "next Step", "Tenant1", "4", "OK");
         document.add(table);
         document.close();
-        return document;
+        return outputStream;
     }
     public static void tableHeaderTenants(PdfPTable table) {
         Stream.of("Tenant name", "Contact email", "Job Type", "job name", "next run","status" ,"vm number" ,"Hypervisor type")

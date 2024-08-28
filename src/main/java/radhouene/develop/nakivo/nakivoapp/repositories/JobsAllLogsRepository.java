@@ -11,4 +11,6 @@ import java.util.List;
 public interface JobsAllLogsRepository extends JpaRepository<JobsAllLogs, Integer> {
     @Query("SELECT t FROM JobsAllLogs t where t.ContactEmail = :contactEmail group by t.job_id ")
     List<JobsAllLogs> retrieveByContactEmail(String contactEmail);
+    @Query("SELECT distinct j.ContactEmail FROM JobsAllLogs j ")
+    List<String> retrieveOnlyEmails();
 }
